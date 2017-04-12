@@ -8,7 +8,7 @@ package gotomation
 
 // to avoid this: https://github.com/golang/go/issues/975
 CGEventRef createScrollEvent(int32_t x, int32_t y) {
-	return CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitPixel, 2, x, y);
+	return CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 2, x, y);
 }
 */
 import "C"
@@ -34,7 +34,7 @@ func calculateDeltas(event *C.CGEventRef, x, y int) {
 	C.CGEventSetIntegerValueField(*event, C.kCGMouseEventDeltaY, C.int64_t(y)-C.int64_t(pos.y))
 }
 
-func (m mouse) MoveQuickly(x, y int) {
+func (m mouse) MoveQuickly(x, y int) error {
 	move := C.CGEventCreateMouseEvent(nil, C.kCGEventMouseMoved,
 		C.CGPointMake((C.CGFloat)(x), (C.CGFloat)(y)),
 		C.kCGMouseButtonLeft)
@@ -43,6 +43,7 @@ func (m mouse) MoveQuickly(x, y int) {
 	calculateDeltas(&move, x, y)
 
 	C.CGEventPost(C.kCGSessionEventTap, move)
+	return nil
 }
 
 func mouseType(down bool, button MouseButton) (mouseType C.CGEventType) {
@@ -68,11 +69,20 @@ func mouseType(down bool, button MouseButton) (mouseType C.CGEventType) {
 	return
 }
 
-func mouseToggleButton(down bool, button MouseButton) {
+func mouseToggleButton(down bool, button MouseButton) error {
 	event := C.CGEventCreateMouseEvent(nil, mouseType(down, button), rawMousePos(), (C.CGMouseButton)(button))
 	defer C.CFRelease(C.CFTypeRef(event))
 	C.CGEventPost(C.kCGSessionEventTap, event)
+	return nil
 }
+
+func (m mouse) ClickWith(button MouseButton) {
+	mouseToggleButton(true, button)
+	time.Sleep(time.Millisecond * 10)
+	mouseToggleButton(false, button)
+	time.Sleep(time.Millisecond * 10)
+}
+
 
 func (m mouse) DoubleClick() {
 	event := C.CGEventCreateMouseEvent(nil, mouseType(true, MouseLeft), rawMousePos(), C.kCGMouseButtonLeft)
@@ -87,13 +97,14 @@ func (m mouse) DoubleClick() {
 	time.Sleep(time.Millisecond * 100)
 }
 
-func (m mouse) ScrollQuickly(x, y int) {
+func (m mouse) ScrollQuickly(x, y int) error {
 	event := C.createScrollEvent(C.int32_t(x), C.int32_t(y))
 	defer C.CFRelease(C.CFTypeRef(event))
 	C.CGEventPost(C.kCGHIDEventTap, event)
+	return nil
 }
 
-func (m mouse) DragWith(button MouseButton, x, y int) {
+func (m mouse) DragWith(button MouseButton, x, y int) error {
 	var dragType C.CGEventType
 	switch button {
 	case MouseLeft:
@@ -110,4 +121,5 @@ func (m mouse) DragWith(button MouseButton, x, y int) {
 
 	C.CGEventPost(C.kCGSessionEventTap, drag)
 	time.Sleep(time.Millisecond * 100)
+	return nil
 }

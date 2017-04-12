@@ -71,13 +71,6 @@ func (m mouse) Click() {
 	m.ClickWith(MouseLeft)
 }
 
-func (m mouse) ClickWith(button MouseButton) {
-	mouseToggleButton(true, button)
-	time.Sleep(time.Millisecond * 10)
-	mouseToggleButton(false, button)
-	time.Sleep(time.Millisecond * 100)
-}
-
 func (m mouse) Drag(x, y int) {
 	m.DragWith(MouseLeft, x, y)
 }

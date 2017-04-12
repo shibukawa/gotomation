@@ -3,12 +3,37 @@ package gotomation
 import (
 	"unicode/utf16"
 	"unsafe"
+	"time"
 )
 
 /*
-#cgo LDFLAGS: -framework Carbon
+#cgo LDFLAGS: -framework Carbon -framework IOKit
 #include <ApplicationServices/ApplicationServices.h>
+#import <IOKit/hidsystem/IOHIDLib.h>
+#import <IOKIt/hidsystem/IOLLEvent.h>
 #include <Carbon/Carbon.h>
+#include <mach/mach_traps.h>
+
+static io_connect_t _getAuxiliaryKeyDriver(void)
+{
+	static mach_port_t sEventDrvrRef = 0;
+	mach_port_t masterPort, service, iter;
+	kern_return_t kr;
+
+	if (!sEventDrvrRef) {
+		kr = IOMasterPort( bootstrap_port, &masterPort );
+		assert(KERN_SUCCESS == kr);
+		kr = IOServiceGetMatchingServices(masterPort, IOServiceMatching( kIOHIDSystemClass), &iter );
+		assert(KERN_SUCCESS == kr);
+		service = IOIteratorNext( iter );
+		assert(service);
+		kr = IOServiceOpen(service, mach_task_self(), kIOHIDParamConnectType, &sEventDrvrRef );
+		assert(KERN_SUCCESS == kr);
+		IOObjectRelease(service);
+		IOObjectRelease(iter);
+	}
+	return sEventDrvrRef;
+}
 */
 import "C"
 
@@ -97,14 +122,23 @@ const (
 	VK_F19         = C.kVK_F19
 	VK_F20         = C.kVK_F20
 	VK_META        = C.kVK_Command
+	VK_LMETA        = C.kVK_Command
+	VK_RMETA        = C.kVK_Command
+	VK_LWIN        = C.kVK_Command
+	VK_RWIN        = C.kVK_Command
+	VK_LCOMMAND        = C.kVK_Command
+	VK_RCOMMAND        = C.kVK_Command
 	VK_ALT         = C.kVK_Option
 	VK_CONTROL     = C.kVK_Control
+	VK_LCONTROL    = C.kVK_Control
+	VK_RCONTROL    = C.kVK_Control
 	VK_SHIFT       = C.kVK_Shift
-	VK_RIGHTSHIFT  = C.kVK_RightShift
+	VK_LSHIFT      = C.kVK_Shift
+	VK_RSHIFT      = C.kVK_RightShift
 	VK_CAPSLOCK    = C.kVK_CapsLock
 	VK_SPACE       = C.kVK_Space
 	VK_INSERT      = VK_NOT_A_KEY
-	VK_PRINTSCREEN = VK_NOT_A_KEY
+	VK_SNAPSHOT    = VK_NOT_A_KEY
 
 	VK_NUMPAD_0       = C.kVK_ANSI_Keypad0
 	VK_NUMPAD_1       = C.kVK_ANSI_Keypad1
@@ -128,15 +162,10 @@ const (
 	VK_AUDIO_VOLUME_MUTE = 1007
 	VK_AUDIO_VOLUME_DOWN = 1001
 	VK_AUDIO_VOLUME_UP   = 1000
-	VK_AUDIO_PLAY        = 1016
+	VK_MEDIA_PLAY_PAUSE  = 1016
 	VK_AUDIO_STOP        = VK_NOT_A_KEY
-	VK_AUDIO_PAUSE       = 1016
 	VK_AUDIO_PREV        = 1018
 	VK_AUDIO_NEXT        = 1017
-	VK_AUDIO_REWIND      = VK_NOT_A_KEY
-	VK_AUDIO_FORWARD     = VK_NOT_A_KEY
-	VK_AUDIO_REPEAT      = VK_NOT_A_KEY
-	VK_AUDIO_RANDOM      = VK_NOT_A_KEY
 
 	VK_LIGHTS_MON_UP     = 1002
 	VK_LIGHTS_MON_DOWN   = 1003
@@ -144,12 +173,30 @@ const (
 	VK_LIGHTS_KBD_UP     = 1021
 	VK_LIGHTS_KBD_DOWN   = 1022
 
-	VK_JIS_YEN          = C.kVK_JIS_Yen
-	VK_JIS_UNDERSCORE   = C.kVK_JIS_Underscore
-	VK_JIS_KEYPAD_COMMA = C.kVK_JIS_KeypadComma
-	VK_JIS_EISU         = C.kVK_JIS_Eisu
-	VK_JIS_KANA         = C.kVK_JIS_Kana
+	VK_YEN          = C.kVK_JIS_Yen
+	VK_UNDERSCORE   = C.kVK_JIS_Underscore
+	VK_KEYPAD_COMMA = C.kVK_JIS_KeypadComma
+	VK_EISU         = C.kVK_JIS_Eisu
+	VK_KANA         = C.kVK_JIS_Kana
 )
+
+func (k keyboard) Type(str string) {
+	for _, char := range str {
+		k.tap(char)
+		time.Sleep(k.waitBetweenChars)
+	}
+}
+
+func (k keyboard) TypeQuickly(str string) {
+	for _, char := range str {
+		k.tap(char)
+	}
+}
+
+func (k keyboard) tap(char rune) {
+	k.toggleKeyByRune(char, true)
+	k.toggleKeyByRune(char, false)
+}
 
 func (k keyboard) toggleKeyByRune(char rune, down bool) {
 	if char >= 0x10000 {
@@ -169,8 +216,39 @@ func (k keyboard) toggleKeyByRune(char rune, down bool) {
 	}
 }
 
-func (k keyboard) toggleKeyByCode(code KeyCode, down bool) {
-	event := C.CGEventCreateKeyboardEvent(nil, C.CGKeyCode(code), C._Bool(down))
-	defer C.CFRelease(C.CFTypeRef(event))
-	C.CGEventPost(C.kCGSessionEventTap, event)
+
+type nxEventData struct {    /* For window-changed, sys-defined, and app-defined events */
+	reserved int16
+	subType int16    /* event subtype for compound events */
+    L [11]uint32    /* for use in compound events */
+}
+
+func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifier) {
+	if code > 1000 {
+		code = code - 1000; /* Get the real keycode. */
+		var loc C.IOGPoint
+		evtInfo := uint32(code) << 16
+		if down {
+			evtInfo |= C.NX_KEYDOWN << 8
+		} else {
+			evtInfo |= C.NX_KEYUP << 8
+		}
+		event := nxEventData{
+			subType: C.NX_SUBTYPE_AUX_CONTROL_BUTTONS,
+		}
+		event.L[0] = evtInfo
+		kr := C.IOHIDPostEvent(C._getAuxiliaryKeyDriver(), C.NX_SYSDEFINED, loc, (*C.NXEventData)(unsafe.Pointer(&event)), C.kNXEventDataVersion, 0, 0)
+		if C.KERN_SUCCESS != kr {
+			panic("Carbon API error")
+		}
+	} else {
+		event := C.CGEventCreateKeyboardEvent(nil, C.CGKeyCode(code), C._Bool(down))
+		defer C.CFRelease(C.CFTypeRef(event))
+		if down {
+			C.CGEventSetType(event, C.kCGEventKeyDown)
+		} else {
+			C.CGEventSetType(event, C.kCGEventKeyUp)
+		}
+		C.CGEventPost(C.kCGSessionEventTap, event)
+	}
 }

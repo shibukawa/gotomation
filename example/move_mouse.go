@@ -7,9 +7,6 @@ import (
 )
 
 func main() {
-	x, y := gotomation.Mouse.GetPosition()
-	fmt.Printf("Mouse Position: %d, %d\n", x, y)
-
 	screen, err := gotomation.GetMainScreen()
 	if err != nil {
 		panic(err)

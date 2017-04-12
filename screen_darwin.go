@@ -20,6 +20,27 @@ type screen struct {
 	w, h int
 }
 
+func (s screen) getID() int {
+	return s.id
+}
+
+func GetMainScreen() (*Screen, error) {
+	return GetScreen(int(C.CGMainDisplayID()))
+}
+
+func GetScreen(id int) (*Screen, error) {
+	var w, h C.size_t
+	w = C.CGDisplayPixelsWide(C.CGDirectDisplayID(id))
+	h = C.CGDisplayPixelsHigh(C.CGDirectDisplayID(id))
+	return &Screen{
+		screen: &screen{
+			id: id,
+			w:  int(w),
+			h:  int(h),
+		},
+	}, nil
+}
+
 func (s screen) capture(x, y, w, h int) (image.Image, error) {
 	osImage := C.CGDisplayCreateImageForRect(C.CGDirectDisplayID(s.id),
 		C.CGRectMake(C.CGFloat(x), C.CGFloat(y), C.CGFloat(w), C.CGFloat(h)))
@@ -60,21 +81,4 @@ func (s screen) capture(x, y, w, h int) (image.Image, error) {
 		}, nil
 	}
 	return nil, fmt.Errorf("Capture doesn't support color mode with %d bits per pixel", bitsPerPixel)
-}
-
-func GetMainScreen() (*Screen, error) {
-	return GetScreen(int(C.CGMainDisplayID()))
-}
-
-func GetScreen(id int) (*Screen, error) {
-	var w, h C.size_t
-	w = C.CGDisplayPixelsWide(C.CGDirectDisplayID(id))
-	h = C.CGDisplayPixelsHigh(C.CGDirectDisplayID(id))
-	return &Screen{
-		screen: &screen{
-			id: id,
-			w:  int(w),
-			h:  int(h),
-		},
-	}, nil
 }

@@ -13,7 +13,7 @@ type Screen struct {
 }
 
 func (s Screen) ID() int {
-	return s.screen.id
+	return s.screen.getID()
 }
 
 func (s Screen) X() int {
