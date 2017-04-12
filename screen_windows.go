@@ -79,7 +79,7 @@ func (s screen) capture(x, y, w, h int) (image.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	buffer := make([]byte, 4 * w * h)
+	buffer := make([]byte, 4*w*h)
 	source := (*[]byte)(unsafe.Pointer(&data))
 	copy(buffer, *source)
 	return &image.RGBA{

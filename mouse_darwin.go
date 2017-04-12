@@ -83,7 +83,6 @@ func (m mouse) ClickWith(button MouseButton) {
 	time.Sleep(time.Millisecond * 10)
 }
 
-
 func (m mouse) DoubleClick() {
 	event := C.CGEventCreateMouseEvent(nil, mouseType(true, MouseLeft), rawMousePos(), C.kCGMouseButtonLeft)
 	defer C.CFRelease(C.CFTypeRef(event))

@@ -1,9 +1,9 @@
 package gotomation
 
 import (
+	"time"
 	"unicode/utf16"
 	"unsafe"
-	"time"
 )
 
 /*
@@ -88,57 +88,57 @@ const (
 	VK_PERIOD       = C.kVK_ANSI_Period
 	VK_GRAVE        = C.kVK_ANSI_Grave
 
-	VK_BACKSPACE   = C.kVK_Delete
-	VK_DELETE      = C.kVK_ForwardDelete
-	VK_RETURN      = C.kVK_Return
-	VK_TAB         = C.kVK_Tab
-	VK_ESCAPE      = C.kVK_Escape
-	VK_UP          = C.kVK_UpArrow
-	VK_DOWN        = C.kVK_DownArrow
-	VK_RIGHT       = C.kVK_RightArrow
-	VK_LEFT        = C.kVK_LeftArrow
-	VK_HOME        = C.kVK_Home
-	VK_END         = C.kVK_End
-	VK_PAGEUP      = C.kVK_PageUp
-	VK_PAGEDOWN    = C.kVK_PageDown
-	VK_F1          = C.kVK_F1
-	VK_F2          = C.kVK_F2
-	VK_F3          = C.kVK_F3
-	VK_F4          = C.kVK_F4
-	VK_F5          = C.kVK_F5
-	VK_F6          = C.kVK_F6
-	VK_F7          = C.kVK_F7
-	VK_F8          = C.kVK_F8
-	VK_F9          = C.kVK_F9
-	VK_F10         = C.kVK_F10
-	VK_F11         = C.kVK_F11
-	VK_F12         = C.kVK_F12
-	VK_F13         = C.kVK_F13
-	VK_F14         = C.kVK_F14
-	VK_F15         = C.kVK_F15
-	VK_F16         = C.kVK_F16
-	VK_F17         = C.kVK_F17
-	VK_F18         = C.kVK_F18
-	VK_F19         = C.kVK_F19
-	VK_F20         = C.kVK_F20
-	VK_META        = C.kVK_Command
-	VK_LMETA        = C.kVK_Command
-	VK_RMETA        = C.kVK_Command
-	VK_LWIN        = C.kVK_Command
-	VK_RWIN        = C.kVK_Command
-	VK_LCOMMAND        = C.kVK_Command
-	VK_RCOMMAND        = C.kVK_Command
-	VK_ALT         = C.kVK_Option
-	VK_CONTROL     = C.kVK_Control
-	VK_LCONTROL    = C.kVK_Control
-	VK_RCONTROL    = C.kVK_Control
-	VK_SHIFT       = C.kVK_Shift
-	VK_LSHIFT      = C.kVK_Shift
-	VK_RSHIFT      = C.kVK_RightShift
-	VK_CAPSLOCK    = C.kVK_CapsLock
-	VK_SPACE       = C.kVK_Space
-	VK_INSERT      = VK_NOT_A_KEY
-	VK_SNAPSHOT    = VK_NOT_A_KEY
+	VK_BACKSPACE = C.kVK_Delete
+	VK_DELETE    = C.kVK_ForwardDelete
+	VK_RETURN    = C.kVK_Return
+	VK_TAB       = C.kVK_Tab
+	VK_ESCAPE    = C.kVK_Escape
+	VK_UP        = C.kVK_UpArrow
+	VK_DOWN      = C.kVK_DownArrow
+	VK_RIGHT     = C.kVK_RightArrow
+	VK_LEFT      = C.kVK_LeftArrow
+	VK_HOME      = C.kVK_Home
+	VK_END       = C.kVK_End
+	VK_PAGEUP    = C.kVK_PageUp
+	VK_PAGEDOWN  = C.kVK_PageDown
+	VK_F1        = C.kVK_F1
+	VK_F2        = C.kVK_F2
+	VK_F3        = C.kVK_F3
+	VK_F4        = C.kVK_F4
+	VK_F5        = C.kVK_F5
+	VK_F6        = C.kVK_F6
+	VK_F7        = C.kVK_F7
+	VK_F8        = C.kVK_F8
+	VK_F9        = C.kVK_F9
+	VK_F10       = C.kVK_F10
+	VK_F11       = C.kVK_F11
+	VK_F12       = C.kVK_F12
+	VK_F13       = C.kVK_F13
+	VK_F14       = C.kVK_F14
+	VK_F15       = C.kVK_F15
+	VK_F16       = C.kVK_F16
+	VK_F17       = C.kVK_F17
+	VK_F18       = C.kVK_F18
+	VK_F19       = C.kVK_F19
+	VK_F20       = C.kVK_F20
+	VK_META      = C.kVK_Command
+	VK_LMETA     = C.kVK_Command
+	VK_RMETA     = C.kVK_Command
+	VK_LWIN      = C.kVK_Command
+	VK_RWIN      = C.kVK_Command
+	VK_LCOMMAND  = C.kVK_Command
+	VK_RCOMMAND  = C.kVK_Command
+	VK_ALT       = C.kVK_Option
+	VK_CONTROL   = C.kVK_Control
+	VK_LCONTROL  = C.kVK_Control
+	VK_RCONTROL  = C.kVK_Control
+	VK_SHIFT     = C.kVK_Shift
+	VK_LSHIFT    = C.kVK_Shift
+	VK_RSHIFT    = C.kVK_RightShift
+	VK_CAPSLOCK  = C.kVK_CapsLock
+	VK_SPACE     = C.kVK_Space
+	VK_INSERT    = VK_NOT_A_KEY
+	VK_SNAPSHOT  = VK_NOT_A_KEY
 
 	VK_NUMPAD_0       = C.kVK_ANSI_Keypad0
 	VK_NUMPAD_1       = C.kVK_ANSI_Keypad1
@@ -216,16 +216,15 @@ func (k keyboard) toggleKeyByRune(char rune, down bool) {
 	}
 }
 
-
-type nxEventData struct {    /* For window-changed, sys-defined, and app-defined events */
+type nxEventData struct { /* For window-changed, sys-defined, and app-defined events */
 	reserved int16
-	subType int16    /* event subtype for compound events */
-    L [11]uint32    /* for use in compound events */
+	subType  int16      /* event subtype for compound events */
+	L        [11]uint32 /* for use in compound events */
 }
 
 func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifier) {
 	if code > 1000 {
-		code = code - 1000; /* Get the real keycode. */
+		code = code - 1000 /* Get the real keycode. */
 		var loc C.IOGPoint
 		evtInfo := uint32(code) << 16
 		if down {

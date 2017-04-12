@@ -1,8 +1,8 @@
 package gotomation
 
 import (
-	"unsafe"
 	"time"
+	"unsafe"
 )
 
 func mouseType(down bool, button MouseButton) (mouseType uint32) {
@@ -38,14 +38,14 @@ func (m mouse) ClickWith(button MouseButton) {
 
 func (m mouse) GetPosition() (x, y int) {
 	point := wPOINT{}
-	procGetCursorPos.Call(uintptr(unsafe.Pointer(&point)));
+	procGetCursorPos.Call(uintptr(unsafe.Pointer(&point)))
 	x = int(point.x)
 	y = int(point.y)
 	return
 }
 
 func mouseCoordToAbs(coord, total int) int32 {
-	return int32((65536 * coord) / total) + 1
+	return int32((65536*coord)/total) + 1
 }
 
 func mouseMoveEvent(x, y int) (*wMOUSEINPUT, error) {

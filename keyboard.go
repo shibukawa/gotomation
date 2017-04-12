@@ -7,12 +7,12 @@ type KeyCode uint16
 type KeyModifier uint16
 
 const (
-	SHIFT KeyModifier = 0x0001
-	ALT = 0x0002
-	CONTROL = 0x0004
-	META = 0x0008
-	WIN = META
-	COMMAND = META
+	SHIFT   KeyModifier = 0x0001
+	ALT                 = 0x0002
+	CONTROL             = 0x0004
+	META                = 0x0008
+	WIN                 = META
+	COMMAND             = META
 )
 
 type keyboard struct {

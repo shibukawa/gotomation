@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-    fmt.Println("Type 'HELLO'")
+	fmt.Println("Type 'HELLO'")
 	gotomation.Keyboard.KeyDown(gotomation.VK_SHIFT)
 	gotomation.Keyboard.KeyPress(gotomation.VK_H)
 	gotomation.Keyboard.KeyPress(gotomation.VK_E)
