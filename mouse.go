@@ -71,6 +71,10 @@ func (m mouse) Click() {
 	m.ClickWith(MouseLeft)
 }
 
+func (m mouse) DoubleClick() {
+	m.DoubleClickWith(MouseLeft)
+}
+
 func (m mouse) Drag(x, y int) {
 	m.DragWith(MouseLeft, x, y)
 }

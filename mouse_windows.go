@@ -44,49 +44,53 @@ func (m mouse) GetPosition() (x, y int) {
 	return
 }
 
-func mouseCoordToAbs(coord, total int) int32 {
-	return int32((65536*coord)/total) + 1
-}
-
-func mouseMoveEvent(x, y int) (*wMOUSEINPUT, error) {
-	input := &wMOUSEINPUT{
+func (m mouse) MoveQuickly(x, y int) error {
+	sx, sy := m.GetPosition()
+	input := wMOUSEINPUT{
 		typeCode: wINPUT_MOUSE,
 	}
-
-	absX, _, err := procGetSystemMetrics.Call(wSM_CXSCREEN)
-	if err != nil {
-		return nil, err
-	}
-	input.mi.dx = mouseCoordToAbs(x, int(absX))
-	absY, _, err := procGetSystemMetrics.Call(wSM_CYSCREEN)
-	if err != nil {
-		return nil, err
-	}
-	input.mi.dy = mouseCoordToAbs(x, int(absY))
-	input.mi.dwFlags = wMOUSEEVENTF_ABSOLUTE | wMOUSEEVENTF_MOVE
-	return input, nil
-}
-
-func (m mouse) MoveQuickly(x, y int) error {
-	input, err := mouseMoveEvent(x, y)
-	if err != nil {
+	input.mi.dx = int32(x - sx)
+	input.mi.dy = int32(y - sy)
+	input.mi.time = 0
+	input.mi.dwFlags = wMOUSEEVENTF_MOVE
+	_, _, err := procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+	if isError(err) {
 		return err
 	}
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
 	return nil
 }
 
 func (m mouse) DragWith(button MouseButton, x, y int) error {
-	input, err := mouseMoveEvent(x, y)
+	input1 := wMOUSEINPUT{
+		typeCode: wINPUT_MOUSE,
+	}
+	input1.mi.dwFlags = mouseType(true, button)
+	_, _, err := procSendInput.Call(1, uintptr(unsafe.Pointer(&input1)), unsafe.Sizeof(input1))
+	if isError(err) {
+		return err
+	}
+
+	time.Sleep(10 * time.Millisecond)
+
+	err = m.MoveQuickly(x, y)
 	if err != nil {
 		return err
 	}
-	input.mi.dwFlags = wMOUSEEVENTF_ABSOLUTE | wMOUSEEVENTF_MOVE | mouseType(true, button)
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+
 	time.Sleep(10 * time.Millisecond)
-	input.mi.dwFlags = wMOUSEEVENTF_ABSOLUTE | wMOUSEEVENTF_MOVE | mouseType(false, button)
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+
+	input1.mi.dwFlags = mouseType(false, button)
+	_, _, err = procSendInput.Call(1, uintptr(unsafe.Pointer(&input1)), unsafe.Sizeof(input1))
+	if isError(err) {
+		return err
+	}
 	return nil
+}
+
+func (m mouse) DoubleClickWith(button MouseButton) {
+	m.ClickWith(button)
+	time.Sleep(200 * time.Millisecond)
+	m.ClickWith(button)
 }
 
 func (m mouse) ScrollQuickly(x, y int) {

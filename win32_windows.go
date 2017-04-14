@@ -8,6 +8,7 @@ var (
 	procGetDC            = user32.MustFindProc("GetDC")
 	procReleaseDC        = user32.MustFindProc("ReleaseDC")
 	procGetCursorPos     = user32.MustFindProc("GetCursorPos")
+	procSetCursorPos     = user32.MustFindProc("SetCursorPos")
 	procGetSystemMetrics = user32.MustFindProc("GetSystemMetrics")
 	procSendInput        = user32.MustFindProc("SendInput")
 	procMapVirtualKey    = user32.MustFindProc("MapVirtualKeyW")
