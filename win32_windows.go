@@ -10,7 +10,7 @@ var (
 	procGetCursorPos     = user32.MustFindProc("GetCursorPos")
 	procGetSystemMetrics = user32.MustFindProc("GetSystemMetrics")
 	procSendInput        = user32.MustFindProc("SendInput")
-	procMapVirtualKey    = user32.MustFindProc("MapVirtualKey")
+	procMapVirtualKey    = user32.MustFindProc("MapVirtualKeyW")
 
 	gdi32                  = syscall.MustLoadDLL("gdi32.dll")
 	procGetDeviceCaps      = gdi32.MustFindProc("GetDeviceCaps")
@@ -99,4 +99,12 @@ type wKEYBDINPUT struct {
 		time        uint32
 		dwExtraInfo uintptr
 	}
+}
+
+func isError(err error) bool {
+	eno, ok := err.(syscall.Errno)
+	if !ok {
+		panic(err)
+	}
+	return uintptr(eno) != 0
 }
