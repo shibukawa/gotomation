@@ -198,7 +198,7 @@ func (k keyboard) tap(char rune) {
 	k.toggleKeyByRune(char, false)
 }
 
-func (k keyboard) toggleKeyByRune(char rune, down bool) {
+func (k keyboard) toggleKeyByRune(char rune, down bool) error {
 	if char >= 0x10000 {
 		r1, r2 := utf16.EncodeRune(char)
 		chars := [2]C.UniChar{C.UniChar(r1), C.UniChar(r2)}
@@ -214,6 +214,7 @@ func (k keyboard) toggleKeyByRune(char rune, down bool) {
 		C.CGEventKeyboardSetUnicodeString(event, 1, (*C.UniChar)(unsafe.Pointer(&uniChar)))
 		C.CGEventPost(C.kCGSessionEventTap, event)
 	}
+	return nil
 }
 
 type nxEventData struct { /* For window-changed, sys-defined, and app-defined events */
@@ -222,7 +223,7 @@ type nxEventData struct { /* For window-changed, sys-defined, and app-defined ev
 	L        [11]uint32 /* for use in compound events */
 }
 
-func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifier) {
+func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifier) error {
 	if code > 1000 {
 		code = code - 1000 /* Get the real keycode. */
 		var loc C.IOGPoint
@@ -250,4 +251,5 @@ func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifi
 		}
 		C.CGEventPost(C.kCGSessionEventTap, event)
 	}
+	return nil
 }

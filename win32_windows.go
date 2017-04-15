@@ -30,10 +30,10 @@ const (
 	wDIB_RGB_COLORS = 0
 	wSRCCOPY        = 0xCC0020
 
-	wSM_CXSCREEN    = 0
-	wSM_CYSCREEN    = 1
-	wINPUT_MOUSE    = 0
-	wINPUT_KEYBOARD = 1
+	wSM_CXSCREEN     = 0
+	wSM_CYSCREEN     = 1
+	wINPUT_MOUSE     = 0
+	wINPUT_KEYBOARD  = 1
 	wMAPVK_VK_TO_VSC = 0
 
 	wMOUSEEVENTF_MOVE        uint32 = 0x0001

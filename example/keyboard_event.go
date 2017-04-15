@@ -16,7 +16,7 @@ func main() {
 	gotomation.Keyboard.KeyPress(gotomation.VK_O)
 	gotomation.Keyboard.KeyUp(gotomation.VK_SHIFT)
 	if runtime.GOOS == "darwin" {
-		fmt.Println("Make keyboard light bright")
+		fmt.Println("\n\nMake keyboard light bright")
 		for i := 0; i < 32; i++ {
 			gotomation.Keyboard.KeyPress(gotomation.VK_LIGHTS_KBD_UP)
 		}
