@@ -34,6 +34,7 @@ const (
 	wSM_CYSCREEN    = 1
 	wINPUT_MOUSE    = 0
 	wINPUT_KEYBOARD = 1
+	wMAPVK_VK_TO_VSC = 0
 
 	wMOUSEEVENTF_MOVE        uint32 = 0x0001
 	wMOUSEEVENTF_LEFTDOWN           = 0x0002

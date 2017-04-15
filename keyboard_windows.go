@@ -184,7 +184,7 @@ var extendedKeys = map[KeyCode]bool{
 	VK_AUDIO_STOP:        true,
 	VK_AUDIO_NEXT:        true,
 	VK_AUDIO_PREV:        true,
-	//VK_BROWSER_BACK:
+	//VK_BROWSER_BACK: true,
 	//VK_BROWSER_FORWARD: true,
 	//VK_BROWSER_REFRESH: true,
 	//VK_BROWSER_STOP: true,
@@ -194,49 +194,63 @@ var extendedKeys = map[KeyCode]bool{
 	//VK_LAUNCH_MAIL: true,
 }
 
-func keyEvent(key KeyCode, flag uint32) {
+func keyEvent(key KeyCode, flag uint32) error {
 	if extendedKeys[key] {
 		flag |= wKEYEVENTF_EXTENDEDKEY
 	}
-	scan, _, _ := procMapVirtualKey.Call(uintptr(int(key)&0xff), 0)
-	if (flag & wKEYEVENTF_KEYUP) == wKEYEVENTF_KEYUP {
-		scan |= 0x80
+	scan, _, err := procMapVirtualKey.Call(uintptr(int(key)&0xff), wMAPVK_VK_TO_VSC)
+	if isError(err) {
+		return err
 	}
+
+	/*if (flag & wKEYEVENTF_KEYUP) == wKEYEVENTF_KEYUP {
+		scan |= 0x80
+	}*/
 	input := wKEYBDINPUT{
 		typeCode: wINPUT_KEYBOARD,
 	}
 	input.ki.wVk = uint16(key)
 	input.ki.wScan = uint16(scan)
+	input.ki.time = 0
 	input.ki.dwFlags = flag
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+	_, _, err = procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+	if isError(err) {
+		println(err.Error())
+		return err
+	}
 	time.Sleep(10 * time.Millisecond)
+	return nil
 }
 
-func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifier) {
+func (k keyboard) toggleKeyByCode(code KeyCode, down bool, modifiers []KeyModifier) error {
 	var dwFlags uint32
 	if !down {
 		dwFlags = wKEYEVENTF_KEYUP
 	}
 	for _, modifier := range modifiers {
+		var err error
 		switch modifier {
 		case SHIFT:
-			keyEvent(VK_SHIFT, dwFlags)
+			err = keyEvent(VK_SHIFT, dwFlags)
 		case ALT:
-			keyEvent(VK_ALT, dwFlags)
+			err = keyEvent(VK_ALT, dwFlags)
 		case CONTROL:
-			keyEvent(VK_CONTROL, dwFlags)
+			err = keyEvent(VK_CONTROL, dwFlags)
 		case META:
-			keyEvent(VK_META, dwFlags)
+			err = keyEvent(VK_META, dwFlags)
+		}
+		if err != nil {
+			return err
 		}
 		time.Sleep(time.Duration(rand.Int31n(63)) * time.Millisecond)
 	}
-	keyEvent(code, dwFlags)
+	return keyEvent(code, dwFlags)
 }
 
-func (k keyboard) Type(str string) {
+func (k keyboard) Type(str string) error {
 	codes := utf16.Encode([]rune(str))
 	if len(codes) == 0 {
-		return
+		return nil
 	}
 	inputs := make([]wKEYBDINPUT, len(codes)*2)
 	for i, code := range codes {
@@ -248,9 +262,14 @@ func (k keyboard) Type(str string) {
 		}
 		inputs[i*2+1].ki.dwFlags |= wKEYEVENTF_KEYUP
 	}
-	procSendInput.Call(uintptr(len(inputs)), uintptr(unsafe.Pointer(&inputs[0])), unsafe.Sizeof(inputs[0]))
+	_, _, err := procSendInput.Call(uintptr(len(inputs)), uintptr(unsafe.Pointer(&inputs[0])), unsafe.Sizeof(inputs[0]))
+	if isError(err) {
+		println(err.Error())
+		return err
+	}
+	return nil
 }
 
-func (k keyboard) TypeQuickly(str string) {
-	k.Type(str)
+func (k keyboard) TypeQuickly(str string) error {
+	return k.Type(str)
 }

@@ -32,19 +32,34 @@ func (k keyboard) TypeSpeed() int {
 	return int(time.Minute / k.waitBetweenChars)
 }
 
-func (k keyboard) KeyPress(code KeyCode, modifiers ...KeyModifier) {
-	k.toggleKeyByCode(code, true, modifiers)
+func (k keyboard) KeyPress(code KeyCode, modifiers ...KeyModifier) error {
+	err := k.toggleKeyByCode(code, true, modifiers)
+	if err != nil {
+		return err
+	}
 	time.Sleep(10 * time.Millisecond)
-	k.toggleKeyByCode(code, false, modifiers)
+	err = k.toggleKeyByCode(code, false, modifiers)
+	if err != nil {
+		return err
+	}
 	time.Sleep(10 * time.Millisecond)
+	return nil
 }
 
-func (k keyboard) KeyDown(code KeyCode, modifiers ...KeyModifier) {
-	k.toggleKeyByCode(code, true, modifiers)
+func (k keyboard) KeyDown(code KeyCode, modifiers ...KeyModifier) error {
+	err := k.toggleKeyByCode(code, true, modifiers)
+	if err != nil {
+		return err
+	}
 	time.Sleep(10 * time.Millisecond)
+	return nil
 }
 
-func (k keyboard) KeyUp(code KeyCode, modifiers ...KeyModifier) {
-	k.toggleKeyByCode(code, false, modifiers)
+func (k keyboard) KeyUp(code KeyCode, modifiers ...KeyModifier) error {
+	err := k.toggleKeyByCode(code, false, modifiers)
+	if err != nil {
+		return err
+	}
 	time.Sleep(10 * time.Millisecond)
+	return nil
 }

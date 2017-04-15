@@ -28,12 +28,17 @@ func mouseType(down bool, button MouseButton) (mouseType uint32) {
 	return
 }
 
-func (m mouse) ClickWith(button MouseButton) {
+func (m mouse) ClickWith(button MouseButton) error {
 	input := wMOUSEINPUT{
 		typeCode: wINPUT_MOUSE,
 	}
 	input.mi.dwFlags = mouseType(true, button) | mouseType(false, button)
-	procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+	_, _, err := procSendInput.Call(1, uintptr(unsafe.Pointer(&input)), unsafe.Sizeof(input))
+	if isError(err) {
+		println(err.Error())
+		return err
+	}
+	return nil
 }
 
 func (m mouse) GetPosition() (x, y int) {
