@@ -7,6 +7,8 @@ import (
 
 func main() {
 	fmt.Println("Type Chars (300 chars/minutes)")
-	gotomation.Keyboard.SetTypeSpeed(300)
-	gotomation.Keyboard.Type("Hello World ハローワールド 🙆")
+	screen, _ := gotomation.GetMainScreen()
+	keyboard := screen.Keyboard()
+	keyboard.SetTypeSpeed(300)
+	keyboard.Type("Hello World ハローワールド 🙆")
 }

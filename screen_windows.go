@@ -1,7 +1,24 @@
+/*
+   Copyright 2017, Yoshiki Shibukawa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package gotomation
 
 import (
 	"image"
+	"time"
 	"unsafe"
 )
 
@@ -43,10 +60,16 @@ func GetScreen(hwnd uintptr) (*Screen, error) {
 			w:    int(displayW),
 			h:    int(displayH),
 		},
+		mouse: &mouse{},
+		keyboard: &keyboard{
+			waitBetweenChars: 50 * time.Millisecond,
+		},
 	}, nil
 }
 
-func (s screen) capture(x, y, w, h int) (image.Image, error) {
+func (s screen) capture(rect image.Rectangle) (image.Image, error) {
+	w := rect.Dx()
+	h := rect.Dy()
 	bi := wBITMAPINFO{}
 	bi.bmiHeader.biSize = uint32(unsafe.Sizeof(bi))
 	bi.bmiHeader.biWidth = int32(w)
@@ -76,7 +99,7 @@ func (s screen) capture(x, y, w, h int) (image.Image, error) {
 	if isError(err) {
 		return nil, err
 	}
-	_, _, err = procBitBlt.Call(screenMem, 0, 0, uintptr(w), uintptr(h), screen, uintptr(x), uintptr(y), wSRCCOPY)
+	_, _, err = procBitBlt.Call(screenMem, 0, 0, uintptr(w), uintptr(h), screen, uintptr(rect.Min.X), uintptr(rect.Min.Y), wSRCCOPY)
 	if isError(err) {
 		return nil, err
 	}
@@ -97,4 +120,7 @@ func (s screen) capture(x, y, w, h int) (image.Image, error) {
 		Stride: w * 4,
 		Rect:   image.Rect(0, 0, w, h),
 	}, nil
+}
+
+func (s screen) close() {
 }

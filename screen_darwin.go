@@ -1,3 +1,19 @@
+/*
+   Copyright 2017, Yoshiki Shibukawa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 // build! darwin
 
 package gotomation
@@ -12,6 +28,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"time"
 	"unsafe"
 )
 
@@ -38,12 +55,16 @@ func GetScreen(id int) (*Screen, error) {
 			w:  int(w),
 			h:  int(h),
 		},
+		mouse: &mouse{},
+		keyboard: &keyboard{
+			waitBetweenChars: 50 * time.Millisecond,
+		},
 	}, nil
 }
 
-func (s screen) capture(x, y, w, h int) (image.Image, error) {
+func (s screen) capture(rect image.Rectangle) (image.Image, error) {
 	osImage := C.CGDisplayCreateImageForRect(C.CGDirectDisplayID(s.id),
-		C.CGRectMake(C.CGFloat(x), C.CGFloat(y), C.CGFloat(w), C.CGFloat(h)))
+		C.CGRectMake(C.CGFloat(rect.Min.X), C.CGFloat(rect.Min.Y), C.CGFloat(rect.Dx()), C.CGFloat(rect.Dy())))
 
 	if C.uintptr_t(uintptr(unsafe.Pointer(osImage))) == 0 {
 		return nil, errors.New("@1")
@@ -81,4 +102,7 @@ func (s screen) capture(x, y, w, h int) (image.Image, error) {
 		}, nil
 	}
 	return nil, fmt.Errorf("Capture doesn't support color mode with %d bits per pixel", bitsPerPixel)
+}
+
+func (s screen) close() {
 }

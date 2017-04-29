@@ -1,4 +1,20 @@
 /*
+   Copyright 2017, Yoshiki Shibukawa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+/*
 Package gotomation is cross-platform system automation library.
 */
 package gotomation
@@ -9,7 +25,9 @@ import (
 )
 
 type Screen struct {
-	screen *screen
+	screen   *screen
+	mouse    Mouse
+	keyboard Keyboard
 }
 
 func (s Screen) ID() int {
@@ -33,7 +51,7 @@ func (s Screen) H() int {
 }
 
 func (s Screen) RawCapture() (image.Image, error) {
-	return s.screen.capture(0, 0, s.screen.w, s.screen.h)
+	return s.screen.capture(image.Rect(0, 0, s.screen.w, s.screen.h))
 }
 
 func (s Screen) Capture() (image.Image, error) {
@@ -50,47 +68,50 @@ func (s Screen) Capture() (image.Image, error) {
 	return result, nil
 }
 
-func (s Screen) fixRegion(x, y, w, h int) (int, int, int, int) {
-	if x < 0 {
-		x = 0
-	} else if s.screen.w < x {
-		x = s.screen.w
+func (s Screen) fixRegion(rect image.Rectangle) image.Rectangle {
+	if rect.Min.X < 0 {
+		rect.Min.X = 0
 	}
-	if y < 0 {
-		y = 0
-	} else if s.screen.h < h {
-		y = s.screen.h
+	if rect.Min.Y < 0 {
+		rect.Min.Y = 0
 	}
-	if w < 0 {
-		w = 1
+	if s.screen.w < rect.Max.X {
+		rect.Max.X = s.screen.w
 	}
-	if s.screen.w < x+w {
-		w = s.screen.w - x + 1
+	if s.screen.h < rect.Max.Y {
+		rect.Max.Y = s.screen.h
 	}
-	if h < 0 {
-		h = 1
-	}
-	if s.screen.h < y+h {
-		h = s.screen.h - y + 1
-	}
-	return x, y, w, h
+	return rect
 }
 
-func (s Screen) RawCaptureRegion(x, y, w, h int) (image.Image, error) {
-	return s.screen.capture(s.fixRegion(x, y, w, h))
+func (s Screen) RawCaptureRegion(rect image.Rectangle) (image.Image, error) {
+	return s.screen.capture(s.fixRegion(rect))
 }
 
-func (s Screen) CaptureRegion(x, y, w, h int) (image.Image, error) {
-	x, y, w, h = s.fixRegion(x, y, w, h)
-	rawImage, err := s.RawCaptureRegion(x, y, w, h)
+func (s Screen) CaptureRegion(rect image.Rectangle) (image.Image, error) {
+	rawImage, err := s.RawCaptureRegion(s.fixRegion(rect))
 	if err != nil {
 		return nil, err
 	}
 	size := rawImage.Bounds().Size()
+	w := rect.Dx()
+	h := rect.Dy()
 	if size.X == w && size.Y == h {
 		return rawImage, err
 	}
 	result := image.NewRGBA(image.Rect(0, 0, w, h))
 	rez.Convert(result, rawImage, rez.NewBilinearFilter())
 	return result, nil
+}
+
+func (s Screen) Close() {
+	s.screen.close()
+}
+
+func (s Screen) Mouse() Mouse {
+	return s.mouse
+}
+
+func (s Screen) Keyboard() Keyboard {
+	return s.keyboard
 }

@@ -1,3 +1,19 @@
+/*
+   Copyright 2017, Yoshiki Shibukawa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 package gotomation
 
 import (
@@ -180,22 +196,37 @@ const (
 	VK_KANA         = C.kVK_JIS_Kana
 )
 
-func (k keyboard) Type(str string) {
+type keyboard struct {
+	waitBetweenChars time.Duration // delay
+}
+
+func (k keyboard) Type(str string) error {
 	for _, char := range str {
-		k.tap(char)
+		err := k.tap(char)
+		if err != nil {
+			return err
+		}
 		time.Sleep(k.waitBetweenChars)
 	}
+	return nil
 }
 
-func (k keyboard) TypeQuickly(str string) {
+func (k keyboard) TypeQuickly(str string) error {
 	for _, char := range str {
-		k.tap(char)
+		err := k.tap(char)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func (k keyboard) tap(char rune) {
-	k.toggleKeyByRune(char, true)
-	k.toggleKeyByRune(char, false)
+func (k keyboard) tap(char rune) error {
+	err := k.toggleKeyByRune(char, true)
+	if err != nil {
+		return err
+	}
+	return k.toggleKeyByRune(char, false)
 }
 
 func (k keyboard) toggleKeyByRune(char rune, down bool) error {

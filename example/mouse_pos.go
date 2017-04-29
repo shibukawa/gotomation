@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
-	x, y := gotomation.Mouse.GetPosition()
+	screen, _ := gotomation.GetMainScreen()
+	x, y := screen.Mouse().GetPosition()
 	fmt.Printf("Mouse Position: %d, %d\n", x, y)
 }

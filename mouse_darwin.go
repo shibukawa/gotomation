@@ -1,3 +1,19 @@
+/*
+   Copyright 2017, Yoshiki Shibukawa
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
 // build! darwin
 
 package gotomation
@@ -13,6 +29,8 @@ CGEventRef createScrollEvent(int32_t x, int32_t y) {
 */
 import "C"
 import "time"
+
+type mouse struct{}
 
 func rawMousePos() C.CGPoint {
 	event := C.CGEventCreate(nil)
@@ -69,21 +87,21 @@ func mouseType(down bool, button MouseButton) (mouseType C.CGEventType) {
 	return
 }
 
-func mouseToggleButton(down bool, button MouseButton) error {
+func mouseToggleButton(down bool, button MouseButton) {
 	event := C.CGEventCreateMouseEvent(nil, mouseType(down, button), rawMousePos(), (C.CGMouseButton)(button))
 	defer C.CFRelease(C.CFTypeRef(event))
 	C.CGEventPost(C.kCGSessionEventTap, event)
-	return nil
 }
 
-func (m mouse) ClickWith(button MouseButton) {
+func (m mouse) ClickWith(button MouseButton) error {
 	mouseToggleButton(true, button)
 	time.Sleep(time.Millisecond * 10)
 	mouseToggleButton(false, button)
 	time.Sleep(time.Millisecond * 10)
+	return nil
 }
 
-func (m mouse) DoubleClickWith(button MouseButton) {
+func (m mouse) DoubleClickWith(button MouseButton) error {
 	event := C.CGEventCreateMouseEvent(nil, mouseType(true, MouseLeft), rawMousePos(), C.kCGMouseButtonLeft)
 	defer C.CFRelease(C.CFTypeRef(event))
 
@@ -94,6 +112,7 @@ func (m mouse) DoubleClickWith(button MouseButton) {
 	C.CGEventSetType(event, mouseType(false, MouseLeft))
 	C.CGEventPost(C.kCGHIDEventTap, event)
 	time.Sleep(time.Millisecond * 100)
+	return nil
 }
 
 func (m mouse) ScrollQuickly(x, y int) error {

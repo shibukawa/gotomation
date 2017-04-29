@@ -8,17 +8,19 @@ import (
 
 func main() {
 	fmt.Println("Type 'HELLO'")
-	gotomation.Keyboard.KeyDown(gotomation.VK_SHIFT)
-	gotomation.Keyboard.KeyPress(gotomation.VK_H)
-	gotomation.Keyboard.KeyPress(gotomation.VK_E)
-	gotomation.Keyboard.KeyPress(gotomation.VK_L)
-	gotomation.Keyboard.KeyPress(gotomation.VK_L)
-	gotomation.Keyboard.KeyPress(gotomation.VK_O)
-	gotomation.Keyboard.KeyUp(gotomation.VK_SHIFT)
+	screen, _ := gotomation.GetMainScreen()
+	keyboard := screen.Keyboard()
+	keyboard.KeyDown(gotomation.VK_SHIFT)
+	keyboard.KeyPress(gotomation.VK_H)
+	keyboard.KeyPress(gotomation.VK_E)
+	keyboard.KeyPress(gotomation.VK_L)
+	keyboard.KeyPress(gotomation.VK_L)
+	keyboard.KeyPress(gotomation.VK_O)
+	keyboard.KeyUp(gotomation.VK_SHIFT)
 	if runtime.GOOS == "darwin" {
 		fmt.Println("\n\nMake keyboard light bright")
 		for i := 0; i < 32; i++ {
-			gotomation.Keyboard.KeyPress(gotomation.VK_LIGHTS_KBD_UP)
+			keyboard.KeyPress(gotomation.VK_LIGHTS_KBD_UP)
 		}
 	}
 }
